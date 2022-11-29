@@ -15,14 +15,9 @@ namespace Final_Project
         public Form1()
         {
             InitializeComponent();
-            Toilet toilet = new Toilet(3, 3);
-            Console.WriteLine(toilet.ToiletAmount());
-            Console.WriteLine(toilet.Distribution());
-            Console.WriteLine(toilet.DistanceToToilet(10));
-            Console.WriteLine(toilet.OccupyToilet(1));
-            Console.WriteLine(toilet.IsToiletOccupied(1));
-            Console.WriteLine(toilet.ReleaseToilet(1));
-            Console.WriteLine(toilet.IsToiletOccupied(1));
+
+            Main main = new Main();
+            main.Test();
         }
     }
 }
