@@ -134,7 +134,9 @@ namespace Final_Project
             else if (strategy == Strategy.CooperativeBehavior)
             {
                 /* CooperativeBehavior */
-
+                Queue eligibleToilets = CooperativeBehavior(availableToilets, occupiedToilets, toilet);
+                eligibleToilets = LazyBehavior(eligibleToilets, toilet);
+                return (int[])eligibleToilets.Dequeue();
             }
             else if (strategy == Strategy.LazyBehavior)
             {
@@ -206,9 +208,135 @@ namespace Final_Project
         {
             Queue eligibleList = new Queue();
 
+            int rowAmount = toilet.GetRowAmount();
+            int toiletAmountPerRow = toilet.GetToiletAmountPerRow();
 
+            for (int i =0; i< rowAmount; i++)
+            {
+                LinkedList<int> consecutiveToilet = new LinkedList<int>();
 
+                for (int j =0; j< toiletAmountPerRow; j++)
+                {
+                    if (!toilet.IsToiletOccupied(i, j))
+                    {
+                        consecutiveToilet.AddLast(j);
+                    }
+                    else
+                    {
+                        consecutiveToiletHandle(i, eligibleList, consecutiveToilet, false);
+                    }
+                }
+                consecutiveToiletHandle(i, eligibleList, consecutiveToilet, true);
+            }
             return eligibleList;
+        }
+
+        private void consecutiveToiletHandle(int row, Queue eligibleList, LinkedList<int> consecutiveToilet, bool isBackEmpty)
+        {
+            if (consecutiveToilet.First == null)
+                return;
+            bool isFrontEmpty = (consecutiveToilet.First.Value == 0);
+            int startIdx = isFrontEmpty ? 0 : 1;
+            int stopIdx = isBackEmpty ? consecutiveToilet.Count : consecutiveToilet.Count - 1;
+            int idxInterval;
+            if (isFrontEmpty == isBackEmpty)
+                idxInterval = (consecutiveToilet.Count % 2 == 0) ? 1 : 2;
+            else
+                idxInterval = (consecutiveToilet.Count % 2 == 0) ? 2 : 1;
+
+            int minToiletCount = (isFrontEmpty == false && isBackEmpty == false) ? 2 : 1;
+
+            if (consecutiveToilet.Count <= minToiletCount)
+                return;
+            for (int idx = startIdx; idx < stopIdx; idx += idxInterval)
+            {
+                eligibleList.Enqueue(new int[] { row, consecutiveToilet.ElementAt(idx) });
+            }
+            consecutiveToilet.Clear();
+        }
+
+        private void listFrontEmptyBackEmpty(int row, Queue eligibleList, LinkedList<int> list)
+        {
+            if (list.Count <= 1)
+                return;
+            if ((list.Count % 2) == 0)
+            {
+                for (int k = 0; k < list.Count; k++)
+                {
+                    eligibleList.Enqueue(new int[] { row, list.ElementAt(k) });
+                }
+            }
+            else
+            {
+                for (int k = 0; k < list.Count; k += 2)
+                {
+                    eligibleList.Enqueue(new int[] { row, list.ElementAt(k) });
+                }
+            }
+            list.Clear();
+        }
+
+        private void listFrontUsedBackUsed(int row, Queue eligibleList, LinkedList<int> list)
+        {
+            if (list.Count <= 2)
+                return;
+            if ((list.Count % 2) == 0)
+            {
+                for (int k = 1; k < list.Count - 1; k++)
+                {
+                    eligibleList.Enqueue(new int[] { row, list.ElementAt(k) });
+                }
+            }
+            else
+            {
+                for (int k = 1; k < list.Count - 1; k += 2)
+                {
+                    eligibleList.Enqueue(new int[] { row, list.ElementAt(k) });
+                }
+            }
+            list.Clear();
+        }
+
+        private void listFrontUsedBackEmpty(int row, Queue eligibleList, LinkedList<int> list)
+        {
+            if (list.Count <= 1)
+                return;
+            if ((list.Count % 2) == 0)
+            {
+                for (int k = 1; k < list.Count; k += 2)
+                {
+                    eligibleList.Enqueue(new int[] { row, list.ElementAt(k) });
+                }
+            }
+            else
+            {
+                for (int k = 1; k < list.Count; k++)
+                {
+                    eligibleList.Enqueue(new int[] { row, list.ElementAt(k) });
+                }
+            }
+            list.Clear();
+        }
+
+        private void listFrontEmptyBackUsed(int row, Queue eligibleList, LinkedList<int> list)
+        {
+            if (list.Count <= 1)
+                return;
+            if ((list.Count % 2) == 0)
+            {
+                for (int k = 0; k < list.Count - 1; k += 2)
+                {
+                    eligibleList.Enqueue(new int[] { row, list.ElementAt(k) });
+                }
+            }
+            else
+            {
+                for (int k = 0; k < list.Count - 1; k++)
+                {
+                    eligibleList.Enqueue(new int[] { row, list.ElementAt(k) });
+                }
+            }
+            list.Clear();
         }
     }
 }

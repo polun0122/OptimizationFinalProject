@@ -29,22 +29,21 @@ namespace Final_Project
 
         public void Test()
         {
-            Toilet toilet = new Toilet(2, 4);
+            Toilet toilet = new Toilet(2, 6);
             //Console.WriteLine(toilet.ToiletAmount());
             Console.WriteLine(toilet.Distribution());
             //Console.WriteLine(toilet.DistanceToToilet(10));
-            Console.WriteLine(toilet.OccupyToilet(1,1));
-            Console.WriteLine(toilet.OccupyToilet(0, 3));
+            Console.WriteLine(toilet.OccupyToilet(0, 0));
+            Console.WriteLine(toilet.OccupyToilet(0, 4));
+            Console.WriteLine(toilet.OccupyToilet(1, 2));
             //Console.WriteLine(toilet.IsToiletOccupied(1));
             //Console.WriteLine(toilet.ReleaseToilet(1));
             //Console.WriteLine(toilet.IsToiletOccupied(1));
             var status = toilet.ToiletStatus();
 
-            Person sam = new Person(Person.Strategy.MaximizeDistanceBehavior);
-            var a = sam.ChosenToiletIndex(toilet);
-            Console.WriteLine(a);
-            toilet.OccupyToilet(0, 0);
-
+            Person sam = new Person(Person.Strategy.CooperativeBehavior);
+            int[] a = sam.ChosenToiletIndex(toilet);
+            Console.WriteLine(a[0].ToString()+ ","+ a[1].ToString());
         }
     }
     
