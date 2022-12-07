@@ -16,7 +16,7 @@ namespace Final_Project
         {
             InitializeComponent();
 
-            FintnessFunction main = new FintnessFunction(5, 5, Person.Strategy.CooperativeBehavior);
+            FitnessFunction main = new FitnessFunction(5, 5, Person.Strategy.CooperativeBehavior);
             Console.WriteLine("=====================");
             Console.WriteLine("Cost: " + main.Evaluation(0, 3).ToString());
             Console.WriteLine("=====================");

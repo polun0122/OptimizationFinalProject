@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Final_Project
 {
-    internal class FintnessFunction
+    internal class FitnessFunction
     {
         int peopleAmount;
         double peopleInterval; /* 排隊人潮進入時間間距 */
@@ -13,7 +13,7 @@ namespace Final_Project
         double weight_beta = 0.7;
 
 
-        public FintnessFunction(int peopleAmount, double peopleInterval, Person.Strategy strategy)
+        public FitnessFunction(int peopleAmount, double peopleInterval, Person.Strategy strategy)
         {
             this.peopleAmount = peopleAmount;
             this.peopleInterval = peopleInterval;
