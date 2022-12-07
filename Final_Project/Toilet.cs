@@ -21,7 +21,8 @@ namespace Final_Project
         double toiletInterval; /* 小便斗間距 */
         double rowInterval; /* 排間距 */
 
-        bool[,] toiletStatus;
+        int[,] toiletReserveStatus;
+        int[,] toiletUsingStatus;
 
         /// <summary>
         /// </summary>
@@ -30,17 +31,22 @@ namespace Final_Project
         /// <exception cref="Exception"></exception>
         public Toilet(int wallAmount, int toiletAmountPerRow)
         {
-            if (wallAmount < 2 || toiletAmountPerRow < 0)
-            {
-                throw new Exception();
-            }
+            if (wallAmount < 2)
+                throw new Exception("Violate Constraint: 牆面數量不得小於2");
+            if (toiletAmountPerRow < 0)
+                throw new Exception("Violate Constraint: 每排小便斗數量不得小於0");
             this.wallAmount = wallAmount;
             this.toiletAmountPerRow = toiletAmountPerRow;
             rowAmount = 2 * (wallAmount - 1);
             totalAmount = rowAmount * this.toiletAmountPerRow;
             toiletInterval = (restroomLength - toiletLength * this.toiletAmountPerRow) / (this.toiletAmountPerRow + 1);
+            if (toiletInterval < (0.8 - toiletLength))
+                throw new Exception("Violate Constraint: 根據法規小便斗間距不得小於0.8公尺 (內政部營建署_公共建築物衛生設備設計手冊3-2.4)");
             rowInterval = restroomWidth / (this.wallAmount - 1);
-            toiletStatus = new bool[rowAmount, this.toiletAmountPerRow];
+            if (rowInterval < (1.4 + 2 * toiletWidth))
+                throw new Exception("Violate Constraint: 走道寬度需大於1.4公尺(考慮雙向通行)");
+            toiletReserveStatus = new int[rowAmount, this.toiletAmountPerRow];
+            toiletUsingStatus = new int[rowAmount, this.toiletAmountPerRow];
         }
 
         /// <summary>
@@ -74,16 +80,33 @@ namespace Final_Project
         public double GetRowInterval() { return rowInterval; }
 
         /// <summary>
+        /// 預約特定編號的小便斗 Occupy the specific toilet.
+        /// </summary>
+        /// <param name="row"></param>
+        /// <param name="col"></param>
+        /// <returns>是否成功更改狀態</returns>
+        public bool ReserveToilet(int id, int row, int col)
+        {
+            if (toiletReserveStatus[row, col] == 0)
+            {
+                toiletReserveStatus[row, col] = id;
+                return true;
+            }
+            return false;
+        }
+
+
+        /// <summary>
         /// 占用特定編號的小便斗 Occupy the specific toilet.
         /// </summary>
         /// <param name="row"></param>
         /// <param name="col"></param>
         /// <returns>是否成功更改狀態</returns>
-        public bool OccupyToilet(int row, int col)
+        public bool OccupiedToilet(int id, int row, int col)
         {
-            if (toiletStatus[row, col] == false)
+            if (toiletUsingStatus[row, col] == 0)
             {
-                toiletStatus[row, col] = true;
+                toiletUsingStatus[row, col] = id;
                 return true;
             }
             return false;
@@ -97,9 +120,10 @@ namespace Final_Project
         /// <returns>是否成功更改狀態</returns>
         public bool ReleaseToilet(int row, int col)
         {
-            if (toiletStatus[row, col] == true)
+            if (toiletReserveStatus[row, col] != 0)
             {
-                toiletStatus[row, col] = false;
+                toiletReserveStatus[row, col] = 0;
+                toiletUsingStatus[row, col] = 0;
                 return true;
             }
             return false;
@@ -111,9 +135,24 @@ namespace Final_Project
         /// <param name="row"></param>
         /// <param name="col"></param>
         /// <returns></returns>
-        public bool IsToiletOccupied(int row, int col)
+        public bool IsToiletReserved(int row, int col)
         {
-            return toiletStatus[row, col];
+            return toiletReserveStatus[row, col] > 0;
+        }
+
+        /// <summary>
+        /// 回傳該小便斗被誰占用，ID
+        /// </summary>
+        /// <param name="row"></param>
+        /// <param name="col"></param>
+        /// <returns></returns>
+        public int WhoIsUsingTheToilet(int row, int col)
+        {
+            if (row < 0 || row >= rowAmount)
+                return 0;
+            if (col < 0 || col >= toiletAmountPerRow)
+                return 0;
+            return toiletUsingStatus[row, col];
         }
 
         /// <summary>
@@ -137,51 +176,67 @@ namespace Final_Project
         }
 
         /// <summary>
-        /// 以文字繪製小便斗排列示意圖
+        /// 以文字繪製小便斗排列示意圖，o代表可用之小便斗、*代表已被預約之小便斗
         /// </summary>
         /// <returns></returns>
-        public string Distribution()
+        public string ReservedStatus()
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append("\n");
-            for (int i = 1; i <= wallAmount; i++)
+            sb.Append("\n@ Toilet Reserved Status\n______________\n\n");
+            for (int i =0;i<rowAmount;i++)
             {
-                if (i == 1) /* 第一排 */
+                for (int j=0;j<toiletAmountPerRow;j++)
                 {
-                    sb.Insert(sb.Length, "-*", toiletAmountPerRow);
-                    sb.Append("-\n");
-                    
+                    sb.Append("-");
+                    if (IsToiletReserved(i,j))
+                        sb.Append("*");
+                    else 
+                        sb.Append("o");
+                }
+                sb.Append("-\n");
+                if (i % 2 == 0)
+                {
                     sb.Append("|");
-                    sb.Insert(sb.Length, " ", toiletAmountPerRow * 2 - 1);
-                    sb.Append("|\n");
-                }
-                else if (i== wallAmount) /* 最後一排 */
-                {
-                    sb.Insert(sb.Length, "-*", toiletAmountPerRow);
-                    sb.Append("-\n");
-                }
-                else /* 中間排 */
-                {
-                    sb.Insert(sb.Length, "-*", toiletAmountPerRow);
-                    sb.Append("-\n");
-                    sb.Insert(sb.Length, "-*", toiletAmountPerRow);
-                    sb.Append("-\n|");
-                    sb.Insert(sb.Length, " ", toiletAmountPerRow * 2 - 1);
+                    for (int k = 0; k < toiletAmountPerRow * 2 - 1; k++)
+                        sb.Append(" ");
                     sb.Append("|\n");
                 }
             }
-            sb.AppendLine();
-            sb.AppendLine(String.Format(" - Toilet Interval {0:.000} m", toiletInterval));
-            sb.AppendLine(String.Format(" | Row    Interval {0:.000} m", rowInterval));
-            sb.Append("\n");
+            sb.Append("______________\n\n");
+            sb.Append(String.Format(" - Toilet Interval {0:.000} m\n", toiletInterval));
+            sb.Append(String.Format(" | Row    Interval {0:.000} m\n\n", rowInterval));
             return sb.ToString();
         }
 
-        public bool[,] ToiletStatus()
+        /// <summary>
+        /// 以文字繪製小便斗使用狀態示意圖，0代表可用之小便斗、數字代表使用該小便斗的人員編號
+        /// </summary>
+        /// <returns></returns>
+        public string UsingStatus()
         {
-            return toiletStatus;
+            StringBuilder sb = new StringBuilder();
+            sb.Append("\n@ Toilet Using Status with Id\n______________\n\n");
+            for (int i = 0; i < rowAmount; i++)
+            {
+                for (int j = 0; j < toiletAmountPerRow; j++)
+                {
+                    sb.Append("-");
+                    int id = WhoIsUsingTheToilet(i, j);
+                    sb.Append(id);
+                }
+                sb.Append("-\n");
+                if (i % 2 == 0)
+                {
+                    sb.Append("|");
+                    for (int k = 0; k < toiletAmountPerRow * 2 - 1; k++)
+                        sb.Append(" ");
+                    sb.Append("|\n");
+                }
+            }
+            sb.Append("______________\n\n");
+            sb.Append(String.Format(" - Toilet Interval {0:.000} m\n", toiletInterval));
+            sb.Append(String.Format(" | Row    Interval {0:.000} m\n\n", rowInterval));
+            return sb.ToString();
         }
-        
-       
     }
 }
